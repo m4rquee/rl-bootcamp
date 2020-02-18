@@ -15,7 +15,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 """
 
-
 from collections import deque
 
 import time
@@ -167,7 +166,7 @@ class DQN(object):
         self._render = render
         nn_args = dict(
             dims=[self._get_obs_dim(env)] + q_dim_hid +
-            [self._get_act_dim(env)],
+                 [self._get_act_dim(env)],
             out_fn=lambda x: x)
         # Q-function, Q(s,a,\theta)
         self._q = NN(**nn_args)
@@ -344,9 +343,12 @@ def main(env_id, double, render):
         from simpledqn import gridworld_env
         env = gym.make('GridWorld-v0')
 
-        def get_obs_dim(x): return x.observation_space.n
+        def get_obs_dim(x):
+            return x.observation_space.n
 
-        def get_act_dim(x): return x.action_space.n
+        def get_act_dim(x):
+            return x.action_space.n
+
         obs_preprocessor = preprocess_obs_gridworld
         max_steps = 100000
         log_freq = 1000
@@ -356,9 +358,12 @@ def main(env_id, double, render):
     elif env_id == 'Pong-ram-v0':
         env = EpisodicLifeEnv(NoopResetEnv(gym.make('Pong-ram-v0')))
 
-        def get_obs_dim(x): return x.observation_space.shape[0]
+        def get_obs_dim(x):
+            return x.observation_space.shape[0]
 
-        def get_act_dim(x): return x.action_space.n
+        def get_act_dim(x):
+            return x.action_space.n
+
         obs_preprocessor = preprocess_obs_ram
         max_steps = 10000000
         log_freq = 10000

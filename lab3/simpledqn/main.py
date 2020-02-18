@@ -204,8 +204,20 @@ class DQN(object):
         # Hint: You may want to make use of the following fields: self._discount, self._q, self._qt
         # Hint2: Q-function can be called by self._q.forward(argument)
         # Hint3: You might also find https://docs.chainer.org/en/stable/reference/generated/chainer.functions.select_item.html useful
-        loss = C.Variable(np.array([0.]))  # TODO: replace this line
-        "*** YOUR CODE HERE ***"
+        error_sum = 0
+        for s, a, r, s_prime, d in zip(l_obs, l_act, l_rew, l_next_obs, l_done):
+            s, s_prime = s[np.newaxis, :], s_prime[np.newaxis, :]
+
+            y = r
+            if not d:
+                q_values = self._qt.forward(s_prime)
+                max_q = F.max(q_values[0], axis=0)
+                y += self._discount * max_q
+
+            estimate = self._q.forward(s)[0][a]
+            error_sum += (y - estimate) ** 2
+
+        loss = error_sum / self._opt_batch_size
         return loss
 
     def compute_double_q_learning_loss(self, l_obs, l_act, l_rew, l_next_obs, l_done):

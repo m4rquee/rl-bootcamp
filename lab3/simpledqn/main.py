@@ -200,24 +200,13 @@ class DQN(object):
         time step). Should be of shape N.
         :return: A chainer variable holding a scalar loss.
         """
-        # Hint: You may want to make use of the following fields: self._discount, self._q, self._qt
-        # Hint2: Q-function can be called by self._q.forward(argument)
-        # Hint3: You might also find https://docs.chainer.org/en/stable/reference/generated/chainer.functions.select_item.html useful
-        error_sum = 0
-        for s, a, r, s_prime, d in zip(l_obs, l_act, l_rew, l_next_obs, l_done):
-            s, s_prime = s[np.newaxis, :], s_prime[np.newaxis, :]
+        curr = self._q.forward(l_obs)
+        estimate = F.select_item(curr, l_act)
 
-            y = r
-            if not d:
-                q_values = self._qt.forward(s_prime)
-                max_q = F.max(q_values[0], axis=0)
-                y += self._discount * max_q
+        target = F.max(self._qt.forward(l_next_obs), axis=1)
+        y = l_rew + (1 - l_done) * self._discount * target
 
-            estimate = self._q.forward(s)[0][a]
-            error_sum += (y - estimate) ** 2
-
-        loss = error_sum / self._opt_batch_size
-        return loss
+        return F.mean((y - estimate) ** 2)
 
     def compute_double_q_learning_loss(self, l_obs, l_act, l_rew, l_next_obs, l_done):
         """

@@ -219,12 +219,16 @@ class DQN(object):
         time step). Should be of shape N.
         :return: A chainer variable holding a scalar loss.
         """
-        # Hint: You may want to make use of the following fields: self._discount, self._q, self._qt
-        # Hint2: Q-function can be called by self._q.forward(argument)
-        # Hint3: You might also find https://docs.chainer.org/en/stable/reference/generated/chainer.functions.select_item.html useful
-        loss = C.Variable(np.array([0.]))  # TODO: replace this line
-        "*** YOUR CODE HERE ***"
-        return loss
+        curr = self._q.forward(l_obs)
+        estimate = F.select_item(curr, l_act)
+
+        selection = F.argmax(self._q.forward(l_next_obs), axis=1)
+        evaluation = self._qt.forward(l_next_obs)
+
+        target = F.select_item(evaluation, selection)
+        y = l_rew + (1 - l_done) * self._discount * target
+
+        return F.mean((y - estimate) ** 2)
 
     def train_q(self, l_obs, l_act, l_rew, l_next_obs, l_done):
         """Update Q-value function by sampling from the replay buffer."""
